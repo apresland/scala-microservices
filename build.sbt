@@ -62,7 +62,7 @@ lazy val commons = (project in file("commons")).
 lazy val ingest = (project in file("akka-ingest")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-ingest",
+    name := "akka-ingestion",
     scalaVersion := "2.11.8",
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= kafkaDependencies,

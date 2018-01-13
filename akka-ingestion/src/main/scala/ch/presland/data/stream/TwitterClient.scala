@@ -5,6 +5,7 @@ import ch.presland.data.domain.Tweet
 import twitter4j._
 
 class TwitterClient(actorSystem: ActorSystem) {
+
   private val CONSUMER_KEY = "iQlMVwSIi1jZeIEY19RdVkqzb"
   private val CONSUMER_SECRET = "vtBZ8i3v8zHJgANME8XcMrLlHeI8T4xmKyOAbI7vbxCyawJI7a"
   private val ACCESS_KEY = "225386473-bLWwDXraZrrGrFZA6Xslijzvt0GHayTRdJVUfMMx"

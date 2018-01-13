@@ -1,5 +1,3 @@
 package ch.presland.data.domain
 
-class Tweet {
-
-}
+case class Tweet(id: String, name: String, content: String)
