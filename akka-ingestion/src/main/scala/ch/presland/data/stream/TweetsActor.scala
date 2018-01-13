@@ -2,7 +2,7 @@ package ch.presland.data.stream
 
 import akka.event.Logging
 import akka.stream.actor.ActorPublisher
-import ch.presland.data.domain.{Tweet}
+import ch.presland.data.domain.Tweet
 
 class TweetsActor extends ActorPublisher[Tweet] {
 
