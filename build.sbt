@@ -15,15 +15,15 @@ lazy val commonDependencies = Seq(
 )
 
 lazy val akkaDependencies = Seq(
-  "com.typesafe.akka"        %% "akka-actor"                 % "2.4.19",
-  "com.typesafe.akka"        %% "akka-slf4j"                 % "2.4.19",
-  "com.typesafe.akka"        %% "akka-stream-kafka"          % "0.16",
+  "com.typesafe.akka"        %% "akka-actor"                 % "2.5.9",
+  "com.typesafe.akka"        %% "akka-slf4j"                 % "2.5.9",
+  "com.typesafe.akka"        %% "akka-stream-kafka"          % "0.18",
   "org.json4s"               %% "json4s-jackson"             % "3.2.11"
 )
 
 lazy val kafkaDependencies = Seq(
-  "org.apache.kafka"         %% "kafka"                      % "0.10.2.1",
-  "org.apache.kafka"         % "kafka-clients"               % "0.10.2.1"
+  "org.apache.kafka"         %% "kafka"                      % "0.11.0.1",
+  "org.apache.kafka"         % "kafka-clients"               % "0.11.0.1"
 )
 
 lazy val logDependencies = Seq(

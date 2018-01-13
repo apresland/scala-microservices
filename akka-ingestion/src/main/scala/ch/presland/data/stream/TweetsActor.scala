@@ -12,7 +12,7 @@ class TweetsActor extends ActorPublisher[Tweet] {
 
   override def receive: Receive = {
     case tweet: Tweet => {
-      log.info("@" + tweet.name + "- " + tweet.content)
+      //log.info("@" + tweet.name + "- " + tweet.content)
     }
   }
 
