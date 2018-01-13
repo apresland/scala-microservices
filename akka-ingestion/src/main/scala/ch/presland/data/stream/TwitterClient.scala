@@ -1,10 +1,11 @@
 package ch.presland.data.stream
 
 import akka.actor.ActorSystem
+import akka.actor.ActorRef
 import ch.presland.data.domain.Tweet
 import twitter4j._
 
-class TwitterClient(actorSystem: ActorSystem) {
+class TwitterClient(actorRef: ActorRef) {
 
   private val CONSUMER_KEY = "iQlMVwSIi1jZeIEY19RdVkqzb"
   private val CONSUMER_SECRET = "vtBZ8i3v8zHJgANME8XcMrLlHeI8T4xmKyOAbI7vbxCyawJI7a"
@@ -25,7 +26,7 @@ class TwitterClient(actorSystem: ActorSystem) {
 
   private def statusListener = new StatusListener() {
     def onStatus(status: Status) {
-      actorSystem.eventStream.publish(Tweet(status.getUser.getScreenName, status.getId.toString, status.getText))
+      actorRef ! Tweet(status.getUser.getScreenName, status.getId.toString, status.getText)
     }
     def onDeletionNotice(statusDeletionNotice: StatusDeletionNotice) {}
     def onTrackLimitationNotice(numberOfLimitedStatuses: Int) {}

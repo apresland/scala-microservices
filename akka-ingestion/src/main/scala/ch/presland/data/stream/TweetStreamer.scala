@@ -1,32 +1,37 @@
 package ch.presland.data.stream
 
-import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.event.Logging
+import akka.actor.ActorSystem
+import akka.actor.ActorRef
 import akka.stream.ActorMaterializer
-import org.json4s.jackson
-import org.json4s.jackson.Serialization
+import akka.stream.scaladsl.{Flow, Sink, Source}
+import ch.presland.data.domain.Tweet
 
 object TweetStreamer {
 
+  val source = Source.actorPublisher[Tweet](Props[TweetPublisher])
+  val sink = Sink.foreach(println)
+  val flow = Flow[Tweet]
+
   implicit val system: ActorSystem = ActorSystem("stream-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-  val actor = system.actorOf(Props(new TweetsActor))
+
+  val actor: ActorRef = flow.to(sink).runWith(source)
 
   def main(args: Array[String]): Unit = {
-    val streamer = new TweetStreamer(system)
+    val streamer = new TweetStreamer(system, actor)
     streamer.run()
   }
 }
 
-class TweetStreamer(system: ActorSystem) {
+class TweetStreamer(system: ActorSystem, actor: ActorRef) {
 
-  implicit val serialization: Serialization.type = jackson.Serialization
   private val log = Logging(system, getClass.getName)
 
   def run(): Unit = {
     log.info("Starting tweet streamer...")
-    val twitterClient = new TwitterClient(system)
+    val twitterClient = new TwitterClient(actor)
     twitterClient.start()
   }
 }
