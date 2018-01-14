@@ -46,7 +46,7 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
-    name := "Ingest",
+    name := "tweetstream",
     scalaVersion := "2.11.8"
   ).
   aggregate(commons, ingest)
@@ -59,15 +59,28 @@ lazy val commons = (project in file("commons")).
     libraryDependencies ++= kafkaDependencies
   )
 
-lazy val ingest = (project in file("akka-ingest")).
+lazy val ingest = (project in file("ingestion")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-ingestion",
+    name := "ingestion",
     scalaVersion := "2.11.8",
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= kafkaDependencies,
     libraryDependencies ++= twitterDependencies,
-    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetStreamer")
+    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetIngestor")
   ).dependsOn(commons)
 
 addCommandAlias("ingest", "ingest/run")
+
+lazy val digest = (project in file("digestion")).
+  settings(commonSettings: _*).
+  settings(
+    name := "digestion",
+    scalaVersion := "2.11.8",
+    libraryDependencies ++= akkaDependencies,
+    libraryDependencies ++= kafkaDependencies,
+    libraryDependencies ++= twitterDependencies,
+    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetDigestor")
+  ).dependsOn(commons)
+
+addCommandAlias("digest", "digest/run")
