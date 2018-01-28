@@ -8,7 +8,7 @@ import akka.stream.scaladsl.Source
 import akka.kafka.scaladsl.Producer
 import akka.kafka.ProducerSettings
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
+import org.apache.kafka.common.serialization.{StringSerializer}
 import ch.presland.data.domain.Tweet
 
 object TweetIngestor extends App{
@@ -16,13 +16,13 @@ object TweetIngestor extends App{
   implicit val system: ActorSystem = ActorSystem("ingest-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new StringSerializer)
+  val producerSettings = ProducerSettings(system, new StringSerializer, new StringSerializer)
     .withBootstrapServers("localhost:9092")
 
   val source = Source
     .actorPublisher[Tweet](Props[TweetPublisher])
     .map{_.content}
-    .map{ new ProducerRecord[Array[Byte], String]("tweets", _)}
+    .map{ new ProducerRecord[String, String]("tweets", _)}
 
   val actor: ActorRef = source
     .to(Producer.plainSink(producerSettings))
