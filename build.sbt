@@ -41,7 +41,10 @@ lazy val kafkaDependencies = Seq(
 lazy val sparkDependencies = Seq(
   "org.apache.spark"           %% "spark-core"                           % "2.2.0",
   "org.apache.spark"           %% "spark-streaming"                      % "2.2.0",
-  "org.apache.spark"           %% "spark-streaming-kafka-0-10"           % "2.2.0"
+  "org.apache.spark"           %% "spark-streaming-kafka-0-10"           % "2.2.0",
+  "com.datastax.spark"         %% "spark-cassandra-connector"            % "2.0.1",
+  "org.apache.spark"           %% "spark-sql"                            % "2.2.0"
+
 )
 
 lazy val logDependencies = Seq(
