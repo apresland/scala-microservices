@@ -22,6 +22,11 @@ import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 
+import scala.util.parsing.json.JSON
+import scala.collection.immutable.Map
+import org.apache.spark.sql.cassandra._
+import com.datastax.spark.connector._
+
 object TweetDigestor extends App {
 
   //implicit val system: ActorSystem = ActorSystem("digest-system")
@@ -36,7 +41,7 @@ object TweetDigestor extends App {
       .setAppName(getClass.getSimpleName)
       .setMaster("local[*]")
       .set("spark.cassandra.connection.host", "localhost")
-      .set("spark.cassandra.connection.port", "8000" )
+      .set("spark.cassandra.connection.port", "9042" )
       .set("spark.cassandra.connection.keep_alive_ms", "30000")
 
   val ssc = new StreamingContext(sparkConf, Seconds(10))
@@ -56,27 +61,21 @@ object TweetDigestor extends App {
     Subscribe[String,String](Array("tweets"), kafkaParams)
   )
 
-  val db = new DB
   val tweets = stream
-    .map {consumerRecord => consumerRecord.value()}.cache()
-  tweets.foreachRDD(rdd => {
-    rdd.take(10).foreach(s => println("RDD value: " + s))
-  })
+    .map {consumerRecord => consumerRecord.value()}
 
-  /*
-  val db = new DB
-  db.loadOffset().foreach { fromOffset =>
-    val partition = 0
-    val subscription = Subscriptions.assignmentWithOffset(
-      new TopicPartition("tweets", partition) -> fromOffset
-    )
-    val done = Consumer.plainSource(consumerSettings, subscription)
-      .mapAsync(1) {
-        db.save
-      }
-      .runWith(Sink.ignore)
-  }
-  */
+  val samples = 10
+
+  tweets.foreachRDD(rdd => {
+
+      rdd
+        .map(s => {
+          val tweet = JSON.parseFull(s)
+          val id: String = tweet.get.asInstanceOf[Map[String,Any]]("id_str").asInstanceOf[String]
+          val text: String = tweet.get.asInstanceOf[Map[String,Any]]("text").asInstanceOf[String]
+          (id,text)})
+        .saveToCassandra("twitter", "tweets")
+  })
 
   ssc.start()
   ssc.awaitTermination()
