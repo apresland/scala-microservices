@@ -30,6 +30,11 @@ lazy val akkaDependencies = Seq(
   "com.typesafe.akka"        %% "akka-actor"                 % "2.4.19",
   "com.typesafe.akka"        %% "akka-slf4j"                 % "2.4.19",
   "com.typesafe.akka"        %% "akka-stream-kafka"          % "0.16",
+  "com.typesafe.akka"        %% "akka-http-spray-json"       % "10.1.0-RC1",
+  "io.spray"                 %% "spray-can"                  % "1.3.4",
+  "io.spray"                 %% "spray-client"               % "1.3.4",
+  "io.spray"                 %% "spray-routing"              % "1.3.4",
+  "io.spray"                 %% "spray-json"                 % "1.3.4",
   "org.json4s"               %% "json4s-jackson"             % "3.2.11"
 )
 

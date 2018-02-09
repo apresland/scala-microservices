@@ -11,7 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringSerializer}
 import ch.presland.data.domain.Tweet
 
-object TweetIngestor extends App{
+object TweetIngestor extends App {
 
   implicit val system: ActorSystem = ActorSystem("ingest-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -21,7 +21,7 @@ object TweetIngestor extends App{
 
   val source = Source
     .actorPublisher[Tweet](Props[TweetPublisher])
-    .map{_.content}
+    .map{_.text}
     .map{ new ProducerRecord[String, String]("tweets", _)}
 
   val actor: ActorRef = source

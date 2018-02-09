@@ -1,41 +1,98 @@
 package ch.presland.data.stream
 
-import java.util.concurrent.atomic.AtomicLong
-
-import kafka.serializer.StringDecoder
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-//import akka.actor.ActorSystem
-import akka.Done
-//import akka.kafka.{ConsumerSettings, Subscriptions}
-import akka.kafka.scaladsl.Consumer
-//import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
-import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord}
-import org.apache.kafka.common.TopicPartition
+import akka.actor.Props
+import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorRef}
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.{StreamingContext, Seconds}
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-
-import scala.util.parsing.json.JSON
 import scala.collection.immutable.Map
-import org.apache.spark.sql.cassandra._
-import com.datastax.spark.connector._
+import spray.json._
+import spray.httpx.unmarshalling.{MalformedContent, Deserialized}
+
+import ch.presland.data.domain.{Tweet,User, Place}
+
+trait TweetMarshaller {
+
+implicit object TweetUnmarshaller {
+
+  def deserializeTweet(json: JsObject): Deserialized[Tweet] = {
+
+    (json.fields.get("created_at"),
+      json.fields.get("id_str"),
+      json.fields.get("text")) match {
+      case (Some(JsString(created)), Some(JsString(id)), Some(JsString(text))) => Right(Tweet(created, id, text))
+      case _ => Left(MalformedContent("malformed tweet"))
+    }
+  }
+
+  def deserializeUser(user: JsValue): Deserialized[Option[User]] = user match {
+    case JsObject(fields) =>
+      (fields.get("id"),
+        fields.get("name"),
+        fields.get("lang"),
+        fields.get("followers_count"),
+        fields.get("geo_enabled")) match {
+        case (Some(JsNumber(id)),
+        Some(JsString(name)),
+        Some(JsString(lang)),
+        Some(JsNumber(followers)),
+        Some(JsBoolean(geo))) => Right(Some(User(id.toInt, name, lang, followers.toInt, geo)))
+
+        case _ => Left(MalformedContent("malformed user"))
+      }
+    case JsNull => Right(None)
+    case _ => Left(MalformedContent("malformed tweet"))
+
+  }
+
+  def deserializePlace(place: JsValue): Deserialized[Option[Place]] = place match {
+    case JsObject(fields) =>
+      (fields.get("id"),
+        fields.get("country"),
+        fields.get("full_name")) match {
+        case (Some(JsString(id)),
+        Some(JsString(country)),
+        Some(JsString(fullname))) => Right(Some(Place(id, country, fullname)))
+
+        case _ => Left(MalformedContent("malformed place"))
+      }
+    case JsNull => Right(None)
+    case _ => Left(MalformedContent("malformed tweet"))
+  }
+
+  def apply(json: JsObject): Deserialized[Tweet] = {
+
+    val tweet = deserializeTweet(json)
+    val user = json.fields.get("user") match {
+      case Some(u) => deserializeUser(u)
+    }
+    val place = json.fields.get("place") match {
+      case Some(p) => deserializePlace(p)
+    }
+    tweet
+  }
+}
+
+}
+
+class TweetDigestionActor(processor: ActorRef) extends Actor with TweetMarshaller {
+
+  override def receive: Receive = {
+    case json: JsObject => {
+      TweetUnmarshaller(json).fold(_=>(), processor !)
+    }
+  }
+}
 
 object TweetDigestor extends App {
 
-  //implicit val system: ActorSystem = ActorSystem("digest-system")
-  //implicit val materializer: ActorMaterializer = ActorMaterializer()
-
-  /*val consumerSettings = ConsumerSettings(system, new StringDeserializer, new StringDeserializer)
-    .withBootstrapServers("localhost:9092")
-    .withGroupId("digestion")
-    .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")*/
+  val system = ActorSystem()
+  val publish = system.actorOf(Props(new TweetPublisher()))
+  val digestion = system.actorOf(Props(new TweetDigestionActor(publish)))
 
   val sparkConf = new SparkConf()
       .setAppName(getClass.getSimpleName)
@@ -44,7 +101,8 @@ object TweetDigestor extends App {
       .set("spark.cassandra.connection.port", "9042" )
       .set("spark.cassandra.connection.keep_alive_ms", "30000")
 
-  val ssc = new StreamingContext(sparkConf, Seconds(10))
+  val batchDuration = Seconds(10)
+  val ssc = new StreamingContext(sparkConf, batchDuration)
 
   val kafkaParams = Map[String, Object] (
     "bootstrap.servers" -> "localhost:9092",
@@ -63,39 +121,12 @@ object TweetDigestor extends App {
 
   val tweets = stream
     .map {consumerRecord => consumerRecord.value()}
-
-  val samples = 10
-
-  tweets.foreachRDD(rdd => {
-
-      rdd
-        .map(s => {
-          val tweet = JSON.parseFull(s)
-          val id: String = tweet.get.asInstanceOf[Map[String,Any]]("id_str").asInstanceOf[String]
-          val text: String = tweet.get.asInstanceOf[Map[String,Any]]("text").asInstanceOf[String]
-          (id,text)})
-        .saveToCassandra("twitter", "tweets")
+    .foreachRDD(rdd => { rdd
+      .map(s => {digestion ! JsonParser(s).asJsObject})
+      .collect()
+      //.saveToCassandra("twitter", "tweets")
   })
 
   ssc.start()
   ssc.awaitTermination()
-}
-
-class DB {
-
-  private val offset = new AtomicLong
-
-  def save(record: ConsumerRecord[String, String]): Future[Done] = {
-    println(s"DB.save: ${record.value}")
-    offset.set(record.offset)
-    Future.successful(Done)
-  }
-
-  def loadOffset(): Future[Long] =
-    Future.successful(offset.get)
-
-  def update(data: String): Future[Done] = {
-    println(s"DB.update: $data")
-    Future.successful(Done)
-  }
 }
