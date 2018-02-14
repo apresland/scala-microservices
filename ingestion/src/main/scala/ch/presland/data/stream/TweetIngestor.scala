@@ -1,33 +1,30 @@
 package ch.presland.data.stream
 
-import akka.actor.Props
 import akka.actor.ActorSystem
-import akka.actor.ActorRef
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
-import akka.kafka.scaladsl.Producer
-import akka.kafka.ProducerSettings
+import akka.kafka.scaladsl.{Consumer, Producer}
+import akka.kafka.{ConsumerSettings, ProducerSettings, Subscriptions}
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{StringSerializer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer, ByteArraySerializer}
+import spray.json.JsonParser
 import ch.presland.data.domain.Tweet
 
-object TweetIngestor extends App {
+object TweetIngestor extends App with TweetMarshaller {
 
   implicit val system: ActorSystem = ActorSystem("ingest-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val producerSettings = ProducerSettings(system, new StringSerializer, new StringSerializer)
+  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new TweetSerializer)
     .withBootstrapServers("localhost:9092")
 
-  val source = Source
-    .actorPublisher[Tweet](Props[TweetPublisher])
-    .map{_.text}
-    .map{ new ProducerRecord[String, String]("tweets", _)}
+  val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
+    .withBootstrapServers("localhost:9092")
+    .withGroupId("ingestion")
+    .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  val actor: ActorRef = source
-    .to(Producer.plainSink(producerSettings))
-    .run()
-
-  val twitterClient = new TwitterClient(actor)
-  twitterClient.start()
+  Consumer.plainSource(consumerSettings, Subscriptions.topics("tweets"))
+    .map(record => {TweetUnmarshaller(JsonParser(record.value()).asJsObject).right.get})
+    .map(tweet => new ProducerRecord[Array[Byte], Tweet]("mytweets",tweet))
+    .runWith(Producer.plainSink(producerSettings))
 }
