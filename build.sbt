@@ -35,7 +35,8 @@ lazy val akkaDependencies = Seq(
   "io.spray"                 %% "spray-client"               % "1.3.4",
   "io.spray"                 %% "spray-routing"              % "1.3.4",
   "io.spray"                 %% "spray-json"                 % "1.3.4",
-  "org.json4s"               %% "json4s-jackson"             % "3.2.11"
+  "org.json4s"               %% "json4s-jackson"             % "3.2.11",
+  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11"    % "2.6.1"
 )
 
 lazy val kafkaDependencies = Seq(
