@@ -25,6 +25,6 @@ object TweetIngestor extends App with TweetMarshaller {
 
   Consumer.plainSource(consumerSettings, Subscriptions.topics("tweets"))
     .map(record => {TweetUnmarshaller(JsonParser(record.value()).asJsObject).right.get})
-    .map(tweet => new ProducerRecord[Array[Byte], Tweet]("mytweets",tweet))
+    .map(tweet => new ProducerRecord[Array[Byte], Tweet]("ingested-tweets",tweet))
     .runWith(Producer.plainSink(producerSettings))
 }

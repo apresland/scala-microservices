@@ -7,7 +7,7 @@ import ch.presland.data.domain.Tweet
 class TweetPublisher extends ActorPublisher[Tweet] {
   override def receive: Receive = {
     case tweet: Tweet => {
-      println("************** TweetPublisher: " + tweet.text)
+      println("************** TweetPublisher: " + tweet.content)
     }
     case Cancel => context.stop(self);
     case Request(_) => {}
