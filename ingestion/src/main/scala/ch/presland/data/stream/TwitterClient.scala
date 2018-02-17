@@ -26,7 +26,7 @@ class TwitterClient(actorRef: ActorRef) {
 
   private def statusListener = new StatusListener() {
     def onStatus(status: Status) {
-      actorRef ! Tweet(status.getUser.getScreenName, status.getId.toString, status.getText)
+      //actorRef ! Tweet(status.getUser.getScreenName, status.getId.toString, status.getText)
     }
     def onDeletionNotice(statusDeletionNotice: StatusDeletionNotice) {}
     def onTrackLimitationNotice(numberOfLimitedStatuses: Int) {}

@@ -1,3 +1,5 @@
 package ch.presland.data.domain
 
-case class Tweet(created: String, id: String, text: String)
+import java.util.Date
+
+case class Tweet(id: String, time: Date, user: String, content: String)

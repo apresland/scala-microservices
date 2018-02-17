@@ -53,6 +53,11 @@ lazy val sparkDependencies = Seq(
 
 )
 
+lazy val coreNlpDependencies = Seq(
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.6.0",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.6.0" classifier "models"
+)
+
 lazy val logDependencies = Seq(
   "org.slf4j"                % "slf4j-api"                    % "1.7.18"
 )
@@ -105,6 +110,7 @@ lazy val digest = (project in file("digestion")).
     libraryDependencies ++= kafkaDependencies,
     libraryDependencies ++= sparkDependencies,
     libraryDependencies ++= twitterDependencies,
+    libraryDependencies ++= coreNlpDependencies,
     mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetDigestor"),
 
     assemblyMergeStrategy in assembly := {
