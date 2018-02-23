@@ -4,11 +4,14 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpMethods._
-import akka.stream.{ActorMaterializer}
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+
 import scala.concurrent.Future
 
-object TweetServer extends App {
+
+
+object TweetServer extends App with CorsSupport {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -19,21 +22,46 @@ object TweetServer extends App {
   val requestHandler: HttpRequest => HttpResponse = {
 
     case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
+
+      println("New request")
+
       HttpResponse(entity = HttpEntity(
-        ContentTypes.`text/html(UTF-8)`,
-        "<html><body>Hello world!</body></html>"))
+        ContentTypes.`application/json`,
+        sentiments(n,m).mkString("""{"data":[""",",","""]}""")))
 
     case r: HttpRequest =>
-      r.discardEntityBytes() // important to drain incoming HTTP Entity stream
+      r.discardEntityBytes()
       HttpResponse(404, entity = "Unknown resource!")
   }
 
   val bindingFuture: Future[Http.ServerBinding] =
     serverSource.to(Sink.foreach { connection =>
       println("Accepted new connection from " + connection.remoteAddress)
-
       connection handleWithSyncHandler requestHandler
-      // this is equivalent to
-      // connection handleWith { Flow[HttpRequest] map requestHandler }
     }).run()
+
+  val n = 6    // number of sentiment layers
+  val m = 200  // number of samples per layer
+  val k = 10   // number of sentiments per layer
+
+  def sentiments(n: Int, m: Int): Array[Double] = {
+    Array(0,0,0,0,0,0).map(e => sentiment(e))
+  }
+
+  def sentiment(a: Double): Double = {
+
+    var s: Double = a
+
+    for (j <- 0 to m-1) {
+      val x = 1 / (0.1 + Math.random())
+      val y = 2 * Math.random() - 0.5
+      val z = 10 / (0.1 + Math.random())
+      for (i <- 1 to n-1) {
+        val w = (i / n - y) * z
+        s += x + Math.exp(-w * w)
+      }
+    }
+
+    s
+  }
 }
