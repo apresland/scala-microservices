@@ -30,6 +30,7 @@ lazy val akkaDependencies = Seq(
   "com.typesafe.akka"        %% "akka-actor"                 % "2.4.19",
   "com.typesafe.akka"        %% "akka-slf4j"                 % "2.4.19",
   "com.typesafe.akka"        %% "akka-stream-kafka"          % "0.16",
+  "com.typesafe.akka"        %% "akka-http"                  % "10.1.0-RC1",
   "com.typesafe.akka"        %% "akka-http-spray-json"       % "10.1.0-RC1",
   "io.spray"                 %% "spray-can"                  % "1.3.4",
   "io.spray"                 %% "spray-client"               % "1.3.4",
@@ -41,7 +42,6 @@ lazy val akkaDependencies = Seq(
 
 lazy val kafkaDependencies = Seq(
   "org.apache.kafka"         %% "kafka"                      % "0.11.0.1"
-  //"org.apache.kafka"         % "kafka-clients"               % "0.11.0.1"
 )
 
 lazy val sparkDependencies = Seq(
@@ -99,8 +99,6 @@ lazy val ingest = (project in file("ingestion")).
     mainClass in (Compile, run) := Some("ch.presland.data.stream.TweetIngestor")
   ).dependsOn(commons)
 
-addCommandAlias("ingest", "ingest/run")
-
 lazy val digest = (project in file("digestion")).
   settings(commonSettings: _*).
   settings(
@@ -140,6 +138,25 @@ lazy val digest = (project in file("digestion")).
 
   ).dependsOn(commons)
 
+val srvProject = "server"
+
+lazy val server = (project in file(srvProject)).
+  settings(commonSettings: _*).
+  settings(
+    name := srvProject,
+    scalaVersion := "2.11.8",
+    libraryDependencies ++= akkaDependencies,
+    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetServer"),
+    artifact in (Compile, assembly) := {
+      val art = (artifact in (Compile, assembly)).value
+      art.withClassifier(Some("assembly"))
+    },
+    addArtifact(artifact in (Compile, assembly), assembly)
+  ).dependsOn(commons)
+
 addCommandAlias("createDigest", "digest/assembly")
 addCommandAlias("submitDigest", "digest/sparkSubmit --master local[2] --class ch.presland.data.stream.TweetDigestor -- localhost:9042")
+
+addCommandAlias("ingest", "ingest/run")
 addCommandAlias("digest", "digest/run")
+addCommandAlias("server", "server/run")
