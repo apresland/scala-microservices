@@ -1,38 +1,22 @@
 package ch.presland.data.stream
 
-import akka.actor.ActorSystem
-import akka.event.LoggingAdapter
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
-import akka.util.Timeout
-
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
-import akka.event.LoggingAdapter
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.stream.Materializer
-import com.typesafe.config.{Config, ConfigFactory}
-import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers._
-import spray.httpx.marshalling.ToResponseMarshallable
-import spray.json._
 import spray.json.DefaultJsonProtocol
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.collection.mutable.ArrayBuffer
 
-case class Person(name: String, age: Int)
-case class Sentiments(data: Iterable[Double])
+case class Sentiments(length: Int, dimension: Int, zero: Iterable[Double], one: Iterable[Double], two: Iterable[Double], three: Iterable[Double], four: Iterable[Double])
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val sentimentsFormat = jsonFormat1(Sentiments)
+  implicit val sentimentsFormat = jsonFormat7(Sentiments)
 }
 
 trait CorsSupport extends JsonSupport {
@@ -66,16 +50,21 @@ trait RestService extends CorsSupport {
 
     import akka.http.scaladsl.server.Directives._
 
-    // format: OFF
     val service =
       get {
         path("sentiments") {
           corsHandler {
-            complete(sentiments(6,200))
+            complete(Sentiments(
+              200,
+              5,
+              sentiments(10,200),
+              sentiments(10,200),
+              sentiments(10,200),
+              sentiments(10,200),
+              sentiments(10,200)))
           }
         }
       }
-    // format: ON
 
     def index = (path("") | pathPrefix("index.htm")) {
       getFromResource("index.html")
@@ -89,35 +78,21 @@ trait RestService extends CorsSupport {
 
 
   def sentiments(n: Int, m: Int): Array[Double] = {
-
-    val k = 10   // number of bumps per layer
     var a = ArrayBuffer.fill[Double](m)(0)
-
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
-    a = sentiment(a,k)
+    for (i <- 1 to 10) {a = sentiment(a)}
     a.toArray
   }
 
-  def sentiment(a: ArrayBuffer[Double], n: Int): ArrayBuffer[Double] = {
+  def sentiment(a: ArrayBuffer[Double]): ArrayBuffer[Double] = {
 
-    val x: Double = 1 / (0.1 + Math.random())
     val y: Double = 2 * Math.random() - 0.5
     val z: Double = 10 / (0.1 + Math.random())
-    var w: Double = 0.0
 
     for (i <- 0 to a.length-1) {
-        w = ((i.toDouble/a.length.toDouble) -y)*z
-        a(i) += x + Math.exp(-w * w)
+        val w = (i.toDouble/a.length.toDouble - y)*z
+        a(i) += Math.exp(-w * w)
     }
+
     a
   }
 }
