@@ -7,61 +7,27 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success}
 
 
 
-object TweetServer extends App with CorsSupport {
+object TweetServer extends RestService {
 
-  implicit val system = ActorSystem()
+  implicit val system = ActorSystem("service-api-http")
+  implicit val executor = system.dispatcher
   implicit val materializer = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
 
-  val serverSource = Http().bind(interface = "localhost", port = 9090)
 
-  val requestHandler: HttpRequest => HttpResponse = {
+  def main(args: Array[String]): Unit = {
 
-    case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
-
-      println("New request")
-
-      HttpResponse(entity = HttpEntity(
-        ContentTypes.`application/json`,
-        sentiments(n,m).mkString("""{"data":[""",",","""]}""")))
-
-    case r: HttpRequest =>
-      r.discardEntityBytes()
-      HttpResponse(404, entity = "Unknown resource!")
-  }
-
-  val bindingFuture: Future[Http.ServerBinding] =
-    serverSource.to(Sink.foreach { connection =>
-      println("Accepted new connection from " + connection.remoteAddress)
-      connection handleWithSyncHandler requestHandler
-    }).run()
-
-  val n = 6    // number of sentiment layers
-  val m = 200  // number of samples per layer
-  val k = 10   // number of sentiments per layer
-
-  def sentiments(n: Int, m: Int): Array[Double] = {
-    Array(0,0,0,0,0,0).map(e => sentiment(e))
-  }
-
-  def sentiment(a: Double): Double = {
-
-    var s: Double = a
-
-    for (j <- 0 to m-1) {
-      val x = 1 / (0.1 + Math.random())
-      val y = 2 * Math.random() - 0.5
-      val z = 10 / (0.1 + Math.random())
-      for (i <- 1 to n-1) {
-        val w = (i / n - y) * z
-        s += x + Math.exp(-w * w)
+    Http().bindAndHandle(route(), "localhost", 9090)
+      .onComplete {
+        case Success(_) => println(s"Successfully bound")
+        case Failure(e) => println(s"Failed !!!!")
       }
-    }
 
-    s
+    Await.ready(system.whenTerminated, Duration.Inf)
   }
 }
