@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS twitter.tweets (
   PRIMARY KEY (id, time)
 );
 
-CREATE TABLE IF NOT EXISTS twitter.sentiments (
+CREATE TABLE IF NOT EXISTS twitter.metrics (
   id text,
   time timestamp,
   sentiment int,
