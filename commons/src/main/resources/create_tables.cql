@@ -15,4 +15,14 @@ CREATE TABLE IF NOT EXISTS twitter.metrics (
   PRIMARY KEY (id, time)
 );
 
+CREATE TABLE IF NOT EXISTS twitter.sentiments (
+  time timestamp,
+  hostile int,
+  negative int,
+  neutral int,
+  positive int,
+  PRIMARY KEY (time)
+);
+
+
 
