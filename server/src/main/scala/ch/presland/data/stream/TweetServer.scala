@@ -1,12 +1,21 @@
 package ch.presland.data.stream
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpMethods._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import ch.presland.data.domain.TweetMetric
+import org.apache.spark.SparkConf
+import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import com.datastax.spark.connector.streaming._
 
+import scala.collection.immutable.Map
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
