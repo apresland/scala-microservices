@@ -18,13 +18,12 @@ button {
 d3.json("http://localhost:9090/sentiments", function(data) {
 
   var sentiment = 0
-  var very_negative = data.zero;
+  var hostile = data.zero;
   var negative = data.one;
   var neutral = data.two;
   var positive = data.three;
-  var very_positive = data.four;
 
-  var n = data.dimension, // number of layers
+  var n = data.dimension - 1, // number of layers
       m = data.length; // number of samples per layer
 
   var stack = d3.stack().keys(d3.range(n)).offset(d3.stackOffsetWiggle),
@@ -75,11 +74,10 @@ d3.json("http://localhost:9090/sentiments", function(data) {
   }
 
   function sentiments() {
-    if (sentiment == 0 ) {++sentiment; return very_negative;}
+    if (sentiment == 0 ) {++sentiment; return hostile;}
     else if (sentiment == 1 ) {++sentiment; return negative;}
     else if (sentiment == 2 ) {++sentiment; return neutral;}
-    else if (sentiment == 3 ) {++sentiment; return very_positive;}
-    else {++sentiment; return very_positive;}
+    else {++sentiment; return positive;}
   }
 
 });

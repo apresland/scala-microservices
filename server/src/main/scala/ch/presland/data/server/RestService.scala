@@ -1,19 +1,28 @@
-package ch.presland.data.stream
+package ch.presland.data.server
 
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
 import scala.concurrent.ExecutionContext
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef,ActorSystem}
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ws.{Message,TextMessage}
+import akka.pattern.ask
+import akka.util.Timeout
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.headers._
 import spray.json.DefaultJsonProtocol
+import scala.concurrent.Await
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
+import com.datastax.driver.core.{ResultSet, Session}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.{ExecutionContext,Future}
 
-case class Sentiments(length: Int, dimension: Int, zero: Iterable[Double], one: Iterable[Double], two: Iterable[Double], three: Iterable[Double], four: Iterable[Double])
+import ch.presland.data.domain.Sentiments
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val sentimentsFormat = jsonFormat7(Sentiments)
@@ -45,23 +54,22 @@ trait CorsSupport extends JsonSupport {
 
 trait RestService extends CorsSupport {
 
+  val session: Session
 
   def route()(implicit system: ActorSystem, ec: ExecutionContext) : Route = {
 
     import akka.http.scaladsl.server.Directives._
+    implicit val timeout = Timeout(5 seconds)
+
+    val sentimentsActor = system.actorOf(TweetSentimentActor.props(), "tweet-sentiments")
 
     val service =
       get {
         path("sentiments") {
           corsHandler {
-            complete(Sentiments(
-              200,
-              5,
-              sentiments(10,200),
-              sentiments(10,200),
-              sentiments(10,200),
-              sentiments(10,200),
-              sentiments(10,200)))
+            complete(
+              ask(sentimentsActor,0).mapTo[Sentiments]
+            )
           }
         }
       }
@@ -77,7 +85,7 @@ trait RestService extends CorsSupport {
 
 
 
-  def sentiments(n: Int, m: Int): Array[Double] = {
+  def sentiments(id:Int, n: Int, m: Int): Array[Double] = {
     var a = ArrayBuffer.fill[Double](m)(0)
     for (i <- 1 to 10) {a = sentiment(a)}
     a.toArray
