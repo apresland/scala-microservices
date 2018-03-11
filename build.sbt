@@ -147,7 +147,7 @@ lazy val server = (project in file(srvProject)).
     scalaVersion := "2.11.8",
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= sparkDependencies,
-    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetServer"),
+    mainClass in (Compile,run) := Some("ch.presland.data.server.ServiceApp"),
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
       art.withClassifier(Some("assembly"))
