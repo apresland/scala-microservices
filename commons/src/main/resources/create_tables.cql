@@ -21,8 +21,24 @@ CREATE TABLE IF NOT EXISTS twitter.sentiments (
   negative int,
   neutral int,
   positive int,
-  PRIMARY KEY (time)
-);
+  PRIMARY KEY (hostile, time)
+) WITH CLUSTERING ORDER BY (time DESC);
+
+CREATE TABLE IF NOT EXISTS twitter.hashtags (
+  id timeuuid,
+  time timestamp,
+  tag0 tuple<text,int>,
+  tag1 tuple<text,int>,
+  tag2 tuple<text,int>,
+  tag3 tuple<text,int>,
+  tag4 tuple<text,int>,
+  tag5 tuple<text,int>,
+  tag6 tuple<text,int>,
+  tag7 tuple<text,int>,
+  tag8 tuple<text,int>,
+  tag9 tuple<text,int>,
+  PRIMARY KEY (id, time)
+) WITH CLUSTERING ORDER BY (time DESC);
 
 
 
