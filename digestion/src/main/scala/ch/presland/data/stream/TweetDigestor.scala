@@ -19,6 +19,7 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.streaming._
 import com.datastax.spark.connector.cql._
 import com.datastax.spark.connector.SomeColumns
+import com.datastax.driver.core.utils._
 
 import scala.collection.immutable.Map
 import ch.presland.data.domain.{Tweet, TweetMetric}
@@ -83,39 +84,105 @@ object TweetDigestor extends App {
     .where("time > ? and time < ?", timeStartLimit.format(fmt), timeStopLimit.format(fmt))
 
   type SentimentCategory = Int
-  type Counter = Map[SentimentCategory,Long]
+  type SentimentCounter = Map[SentimentCategory,Long]
 
 
-  val seqOp: (Counter, SentimentCategory) => Counter = {
+  val sentimentSeqOp: (SentimentCounter, SentimentCategory) => SentimentCounter = {
     case (counter, category) if counter.isDefinedAt(category) => counter.updated(category, counter(category) + 1)
     case (counter, category) => counter + (category -> 1)
   }
 
-  val combOp: (Counter,Counter) => Counter = {
-    case (counter1,counter2) => counter1  ++ counter2.map{
+  val sentimentCombOp: (SentimentCounter,SentimentCounter) => SentimentCounter = {
+    case (counter1,counter2) => counter2.map{
       case (k,v) => k -> (v + counter1.getOrElse(k,0L))}
   }
 
-  val dfd = tweet
+  tweet
     .map(tweet=>metric(tweet))
     .map(metric => metric.sentiment)
-    .window(Seconds(300))
-    .foreachRDD((rdd,time) => saveToDB(time,
-      rdd.aggregate(Map(0->0L,1->0L,2->0L,3->0L))(seqOp, combOp))
+    .window(Seconds(60))
+    .foreachRDD((rdd,time) => saveSentimentToDB(time,
+      rdd.aggregate(Map(0->0L,1->0L,2->0L,3->0L))(sentimentSeqOp, sentimentCombOp))
+    )
+
+  type Hashtag = String
+  type HashtagRank = Int
+  type HashtagCounter = Map[String, Long]
+
+  val hashtagSeqOp: (HashtagCounter, (String,Int)) => HashtagCounter = {
+    case (counter, (hashtag,count)) if counter.isDefinedAt(hashtag) => counter.updated(hashtag, counter(hashtag) + count)
+    case (counter, (hashtag,count)) => counter + (hashtag -> count)
+  }
+
+  val hashtagCombOp: (HashtagCounter,HashtagCounter) => HashtagCounter = {
+    case (counter1,counter2) => counter2.map{
+      case (k,v) => k -> (v + counter1.getOrElse(k,0L))}
+  }
+
+  val hashtags = tweet
+    .map(t => t.content)
+    .flatMap(text => text.toLowerCase().split(" ").filter(_.startsWith("#")))
+
+  val top = hashtags
+    .map((_,1))
+    .reduceByKeyAndWindow(_+_, Seconds(600))
+    .map{case (tag,count) => (tag,count)}
+    .transform(_.sortBy(p => p._2, ascending = false))
+
+  top.print()
+
+  top
+    .foreachRDD(rdd => saveHashtagToDB(
+      rdd.take(10).aggregate(Map.empty[String,Long])(hashtagSeqOp, hashtagCombOp))
     )
 
   ssc.start()
   ssc.awaitTermination()
 
-  def saveToDB(time: org.apache.spark.streaming.Time, senti: Map[SentimentCategory,Long]): Unit = {
+  def saveSentimentToDB(time: org.apache.spark.streaming.Time, senti: Map[SentimentCategory,Long]): Unit = {
 
     val date = LocalDateTime.now()
     val timestamp = Date.from(date.atZone(ZoneId.systemDefault()).toInstant)
     val row = Seq((timestamp, senti.get(0), senti.get(1), senti.get(2), senti.get(3)))
 
-    println(row)
     ssc.sparkContext.parallelize(row)
       .saveToCassandra("twitter","sentiments", SomeColumns("time", "hostile", "negative", "neutral", "positive"))
+  }
+
+  def saveHashtagToDB(hashtags: Map[String,Long]): Unit = {
+
+    val date = LocalDateTime.now()
+    val timestamp = Date.from(date.atZone(ZoneId.systemDefault()).toInstant)
+
+    val keys = hashtags.keySet.toList
+
+    val row = Seq((UUIDs.timeBased(), timestamp,
+      (keys.get(0), hashtags.get(keys.get(0))),
+      (keys.get(1), hashtags.get(keys.get(1))),
+      (keys.get(2), hashtags.get(keys.get(2))),
+      (keys.get(3), hashtags.get(keys.get(3))),
+      (keys.get(4), hashtags.get(keys.get(4))),
+      (keys.get(5), hashtags.get(keys.get(5))),
+      (keys.get(6), hashtags.get(keys.get(6))),
+      (keys.get(7), hashtags.get(keys.get(7))),
+      (keys.get(8), hashtags.get(keys.get(8))),
+      (keys.get(9), hashtags.get(keys.get(9)))
+    ))
+
+    ssc.sparkContext.parallelize(row)
+      .saveToCassandra("twitter","hashtags",
+        SomeColumns(
+          "id","time",
+          "tag0",
+          "tag1",
+          "tag2",
+          "tag3",
+          "tag4",
+          "tag5",
+          "tag6",
+          "tag7",
+          "tag8",
+          "tag9"))
   }
 
   def metric(tweet: Tweet): TweetMetric = {
