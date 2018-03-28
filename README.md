@@ -1,6 +1,6 @@
 # Reactive realtime Tweetstream analysis
 
-The current goto technologies for Fast-Data are Spark, Mesos, Akka, Cassandra and Kafka which together form the so called SMACK stack. Out of these Mesos (with Marathon and DC/OS) is responsible for scaling the system. From the others Spark/Akka/Kafka focus on reacting to the data streaming into the application with Cassandra as data store.
+The current best technologies for streamed data analysis are Spark, Mesos, Akka, Cassandra and Kafka which together form the so called SMACK stack. Out of these Mesos (with Marathon and DC/OS) is responsible for scaling the system. From the others Spark/Akka/Kafka focus on reacting to the data streaming into the application with Cassandra as data store.
 
 TODO: ELK (Logstash + Elasticsearch)
 
@@ -12,7 +12,7 @@ This demonstration is concerns only the SACK components using Tweet streams as a
 Spark is an open-source cluster computing framework. Spark supports batch-processing and stream-processing (micro-batch) and allows Lamba architectures to be efficiently implemented since the Stream and Batch APIs are the same and single data-logic implementation can be used for both. Sparks Scala API is highly performant so that applications built on Akka and Spark can be develoope with the same tools and philisophy. It supports all relevant NoSQL and SQL solutions.
 
 ## Akka
-Akka is an implementation of the Actor model that allows the construction of highly distributed reactive applications. Combining with Scala as the development language many useful aspects of functional programming can leveraged to proivide concise solutions. Since Akka 2.4 REST services are also supported.
+Akka is a framework that allows the construction of highly distributed reactive applications using Actors and Streams. Combining with Scala as the development language many useful aspects of functional programming can leveraged to proivide concise solutions. Since Akka 2.4 REST services are also supported.
 
 ## Cassandra
 Cassandra is a column-oriented databank that is distributed, linearly scaleable to the number of machines in the computing cluster. Cassandras integrates seamlessly with Spark so that distributed operations can be executed local to the data. This data-locality means that IO operations are minimized and the CPUs only process data found locally on disk. 
@@ -41,6 +41,11 @@ The ingestion of data from social-media is typical of fast-big-data use-case whe
 
 TODO: Diagram
 
-The data ingestion is based on Logstash which is an open source, server-side data processing pipeline that ingests data, optionaly transforming/filtering it, before sending it to an output “stash.” With the Twitter input plugin Logstash supports ingestion of tweet events as a continuous stream and can filter them for keywords (e.g."Brexit"). With the Kafka output plugin Logstash can write the filtered events to a Kafka topic.
+The data ingestion is based on Logstash which is an open source, server-side data processing pipeline that ingests data, optionaly transforming/filtering it, before sending it to an output “stash.” With the Twitter input plugin Logstash supports ingestion of tweet events as a continuous stream and can filter them for keywords (e.g."Brexit"). With the Kafka output plugin Logstash can write the filtered twitter events to a Kafka topic.
 
 TODO: Logstash snippit
+
+Tweet events are writen into Kafka by Logstash in there entirety (in this example) and contain non-relevant information that can be removed before digestion. In this stage the Scala reactive-framework Akka is employed for the first time to reduce the data to only those required for the subsequent realtime analysis. Droping this information here is not a problem since Logstash has also pushed all Tweets in there entirety to Elasticsearch these can be used later for batch based explorative analyis. 
+
+# Data Digestion
+It is during data digestion that value is created by extracting information from the data. In this simple example we are interested in extracting sentiment from Tweets that include a keyword (e.g. "Brexit") and in identifying influencers by extracting the most popular hashtags in realtime. The analysis is driven by Spark micro-batches using Spark streams to perform the analyis and write the results into Cassandra in near-realtime. For the sentiment analysis the Stanford CoreNLP Natural-Langauge-Processing library is used.
