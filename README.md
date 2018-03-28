@@ -1,10 +1,12 @@
-# Reactive realtime Tweetstream analysis
+# Reactive Tweetstream analysis in Scala
 
-The current best technologies for streamed data analysis are Spark, Mesos, Akka, Cassandra and Kafka which together form the so called SMACK stack. Out of these Mesos (with Marathon and DC/OS) is responsible for scaling the system. From the others Spark/Akka/Kafka focus on reacting to the data streaming into the application with Cassandra as data store.
+This project demonstrates realtime sentiment analyis and influencer identification using live Tweetstream data.
 
-TODO: ELK (Logstash + Elasticsearch)
+The current best-of-breed technologies for streamed data analysis are Spark, Mesos, Akka, Cassandra and Kafka which together form the so called SMACK stack. Out of these Mesos (with Marathon and DC/OS) is responsible for scaling the system. From the others Spark/Akka/Kafka focus on reacting to the data streaming into the application with Cassandra as data store.
 
-This demonstration is concerns only the SACK components using Tweet streams as a source of real-time data.
+Although SMACK is the cannonical Big-Data stack interesting alternative technologies for realtime applications are Elasticsearch, Logstash and Kibana together known as the ELK stack.
+
+This demonstration is concerns only the SACK  and EL components using Tweet streams as a source of real-time data.
 
 # Technology stack
 
@@ -21,8 +23,10 @@ Cassandra is a column-oriented databank that is distributed, linearly scaleable 
 Kafka is a distributed horizontally scaleable and fault-tolerant Message Broker used for building realtime data pipelines and streaming applications with large data volumes. Because Kafka partitions data and saves it in an Append-Only-Log it can handle Terabytes of data without impact on performance.
 
 ## Logstash
+Elasticsearch is a distributed search and analytics engine.
 
 ## Elasticsearch
+Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to a “stash” (Elasticsearch).
 
 # Architecture Overview
 The platform is composed of the following services bound together with Kafka:
