@@ -2,30 +2,24 @@
 
 A demonstration showing how to use Spark, Akka, Cassandra and Kafka for realtime tweet sentiment analyis and for trending hashtag identification in Scala.
 
-The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to build realtime analysis pipelines in production. Since Mesos is responsible for scaling the system and not of interest here. From the others Spark, Akka and Kafka focus on reacting to the data streaming into the application with Cassandra as data store. Although SMACK is the cannonical Big-Data solution interesting alternative technologies are Elasticsearch, Logstash and for this reason alone will also be used.
+TODO: Streamgraph image
 
 # Stack Overview
+The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to build realtime analysis pipelines in production. Since Mesos is responsible for scaling the system and not of interest here. From the others Spark, Akka and Kafka focus on reacting to the data streaming into the application with Cassandra as data store. Although SMACK is the cannonical Big-Data solution interesting alternative technologies are Elasticsearch, Logstash and for this reason alone will also be used.
 
-* Docker
-Docker Compose was used to containerise and manage the Cassandra, Kafka, Elasticsearch and Logstash services.
+* Docker was used to containerise and manage the Cassandra, Kafka, Elasticsearch and Logstash services.
 
-* Spark
-Spark is an open-source cluster computing framework which supports batch-processing and stream-processing (micro-batch) with a highly performant Scala API.
+* Spark is an open-source cluster computing framework which supports batch-processing and stream-processing (micro-batch) with a highly performant Scala API.
 
-* Akka
-Akka is a framework that allows the construction of highly distributed reactive applications using Actors and Streams. Combined with Scala as the development language many useful aspects of functional programming can leveraged.
+* Akka is a framework that allows the construction of highly distributed reactive applications using Actors and Streams. Combined with Scala as the development language many useful aspects of functional programming can leveraged.
 
-* Cassandra
-Cassandra is a column-oriented databank that is distributed, linearly scaleable. Cassandras integrates seamlessly with Spark so that distributed operations can be executed local to the data. This data-locality means that IO operations are minimized and the CPUs only process data found locally on disk. 
+* Cassandra is a column-oriented databank that is distributed, linearly scaleable. Cassandras integrates seamlessly with Spark so that distributed operations can be executed local to the data. This data-locality means that IO operations are minimized and the CPUs only process data found locally on disk. 
 
-* Kafka
-Kafka is a distributed horizontally scaleable and fault-tolerant Message Broker used for building realtime data pipelines and streaming applications with large data volumes. Because Kafka partitions data and saves it in an Append-Only-Log it can handle Terabytes of data without impact on performance.
+* Kafka is a distributed horizontally scaleable and fault-tolerant Message Broker used for building realtime data pipelines and streaming applications with large data volumes. Because Kafka partitions data and saves it in an Append-Only-Log it can handle Terabytes of data without impact on performance.
 
-* Elasticsearch
-Elasticsearch is a distributed search and analytics engine which can be used to perform queries during explorative analysis.
+* Elasticsearch is a distributed search and analytics engine which can be used to perform queries during explorative analysis.
 
-* Logstash
-Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to a “stash” (Elasticsearch).
+* Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to a “stash” (Elasticsearch).
 
 # Architecture
 The platform is composed of the following services bound together with Kafka:
