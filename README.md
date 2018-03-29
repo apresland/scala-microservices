@@ -1,10 +1,10 @@
-# Reactive Tweetstream analysis
+# Reactive Tweetstream Analysis
 
 A demonstration showing how to use Spark, Akka, Cassandra and Kafka for realtime tweet sentiment analyis and for trending hashtag identification in Scala.
 
 TODO: Streamgraph image
 
-# Stack Overview
+## Overview
 The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to build realtime analysis pipelines in production. Since Mesos is responsible for scaling the system and not of interest here. From the others Spark, Akka and Kafka focus on reacting to the data streaming into the application with Cassandra as data store. Although SMACK is the cannonical Big-Data solution interesting alternative technologies are Elasticsearch, Logstash and for this reason alone will also be used.
 
 * Docker was used to containerise and manage the Cassandra, Kafka, Elasticsearch and Logstash services.
@@ -21,7 +21,7 @@ The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to b
 
 * Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to a “stash” (Elasticsearch).
 
-# Architecture
+## Architecture
 The platform is composed of the following services bound together with Kafka:
 
 * Ingest - Logstash/Elasticsearch
@@ -33,7 +33,7 @@ TODO: Diagram
 
 The Ingest service uses Logstash twitter input plugin to ingest events from the Twitter streaming API and pushes them directly into Elasticsearch. Additionaly Logstash writes the events into Kafka via the Kafka output plugin. The Digest service reads the data from Kafka and processes them with Spark to provide tweet sentiment analyis and time-sliced hashtag aggregations. The results are written into Cassandra tables optimised to serve frontend requests via the Akka-Http REST interface.
 
-## Ingestion
+### Ingestion
 The ingestion of data from social-media is typical of fast-big-data use-case where the continuous stream and large volumes can lead to back-pressure. 
 
 TODO: Diagram
@@ -44,10 +44,10 @@ TODO: Logstash snippit
 
 Logstash writes Tweet events into Kafka in there entirety and they contain non-relevant information that can be removed before digestion. Here Akka is employed to react to events and to reduce the event-data for the subsequent realtime analysis. Droping this information here involves no data loss since Logstash has also pushed all Tweets into Elasticsearch and these can be used later for explorative analyis. 
 
-## Digestion
+### Digestion
 During data digestion value is created by extracting information from the data. In this simple example we are interested in extracting sentiment from Tweets that include a keyword (e.g. "Brexit") and in identifying trending hashtags in realtime. The analysis uses Spark streams to perform the analyis and write micro-batch results into Cassandra in near-realtime. For the sentiment analysis the Stanford CoreNLP Natural-Langauge-Processing library is used.
 
-## Backend
+### Backend
 The backend uses Akka HTTP which builds a full server-side stack ontop of Akka Actors and streams. The high-level, routing API of Akka HTTP provides a DSL to describe HTTP “routes” and how they should be handled. Each route is composed of one or more level of Directive that narrows down to handling one specific request.
 
 Transforming request/response bodies between JSON format and application objects is done separately from the route declarations, in marshallers, which are pulled in implicitly using the “magnet” pattern which means that requests can completed as long as there is an implicit marshaller available in scope.
@@ -58,5 +58,7 @@ Default marshallers are provided for simple objects like String or ByteString, a
 
 The Route created using the Route DSL is then “bound” to a port to start serving HTTP requests:
 
-## Frontend
+### Frontend
 Visualisation is achieved using the D3 javascript library to create a Streamgraph of trending hashtags. With most of the hard work alread done the frontend simply makes a request for the actual data to the backend REST serivice and updates the streamgraph viewed in the browser.
+
+## Running
