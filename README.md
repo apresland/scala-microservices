@@ -33,6 +33,10 @@ TODO: Diagram
 
 The Ingest service uses Logstash twitter input plugin to ingest events from the Twitter streaming API and pushes them directly into Elasticsearch. Additionaly Logstash writes the events into Kafka via the Kafka output plugin. The Digest service reads the data from Kafka and processes them with Spark to provide tweet sentiment analyis and time-sliced hashtag aggregations. The results are written into Cassandra tables optimised to serve frontend requests via the Akka-Http REST interface.
 
+### Services
+
+TODO: Dockerfile description
+
 ### Ingestion
 The ingestion of data from social-media is typical of fast-big-data use-case where the continuous stream and large volumes can lead to back-pressure. 
 
@@ -48,13 +52,11 @@ Logstash writes Tweet events into Kafka in there entirety and they contain non-r
 During data digestion value is created by extracting information from the data. In this simple example we are interested in extracting sentiment from Tweets that include a keyword (e.g. "Brexit") and in identifying trending hashtags in realtime. The analysis uses Spark streams to perform the analyis and write micro-batch results into Cassandra in near-realtime. For the sentiment analysis the Stanford CoreNLP Natural-Langauge-Processing library is used.
 
 ### Backend
-The backend uses Akka HTTP which builds a full server-side stack ontop of Akka Actors and streams. The high-level, routing API of Akka HTTP provides a DSL to describe HTTP “routes” and how they should be handled. Each route is composed of one or more level of Directive that narrows down to handling one specific request.
+The backend uses Akka HTTP to build a full server ontop of Akka actors. The high-level, routing API of Akka HTTP provides a DSL to describe HTTP “routes” and how they should be handled. Each route is composed of one or more level of Directive that narrows down to handling one specific request.
 
-Transforming request/response bodies between JSON format and application objects is done separately from the route declarations, in marshallers, which are pulled in implicitly using the “magnet” pattern which means that requests can completed as long as there is an implicit marshaller available in scope.
+Transforming request and response bodies between JSON format and application objects is done separately from the route declarations, in marshallers, which are pulled in implicitly using the “magnet” pattern which means that requests can completed as long as there is an implicit marshaller available in scope. A built in module provides JSON serialization using the spray-json library.
 
 TODO: Marsheler snippit
-
-Default marshallers are provided for simple objects like String or ByteString, and you can define your own for example for JSON. An additional module provides JSON serialization using the spray-json library.
 
 The Route created using the Route DSL is then “bound” to a port to start serving HTTP requests:
 
@@ -62,3 +64,29 @@ The Route created using the Route DSL is then “bound” to a port to start ser
 Visualisation is achieved using the D3 javascript library to create a Streamgraph of trending hashtags. With most of the hard work alread done the frontend simply makes a request for the actual data to the backend REST serivice and updates the streamgraph viewed in the browser.
 
 ## Running
+
+__Services__:
+```
+docker-compose up
+```
+To run the demonstration Logstash, Cassandra, Zookeeper and Kafka have to be running. Docker containers have been provisioned to make this easier and with docker installed executing the above command should bring the required services up.
+
+```
+cqlsh create_tables.cql
+```
+With Cassandra running as a service we now have to create the tables the application relies upon. This can be achieved using CQL shell by executing the above command
+
+__Ingestion:__
+```
+sbt ingest
+```
+
+__Digestion:__
+```
+sbt digest
+```
+
+__Server:__
+```
+sbt server
+```
