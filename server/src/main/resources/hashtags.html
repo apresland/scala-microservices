@@ -14,6 +14,14 @@
   .hidden {
     display: none;
   }
+
+  .axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2px;
+    shape-rendering: crispEdges;
+  }
+
 </style>
 
 <svg width="960" height="1024"></svg>
@@ -26,7 +34,7 @@ var margin = { top: 10, right: 0, bottom: 10, left: 0 },
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     random = d3.randomNormal(0, 3),
-    turtles = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"],
+    tags = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"],
     colors = ["#ff3399", "e6eeff", "#ccddff", "#b3ccff", "#99bbff","#6699ff", "#3377ff","#0055ff", "#0044cc", "#003399"];
 
 var svg = d3.select("svg").append("g")
@@ -36,7 +44,7 @@ var x = d3.scaleLinear().range([0, width]),
     y = d3.scaleLinear().range([height, 0]);
 
 var series = svg.selectAll(".area")
-  .data(turtles)
+  .data(tags)
   .enter()
   .append("g")
   .attr("class", "area");
@@ -48,12 +56,21 @@ series.append("text")
   .attr("dy", 5)
   .text(d => d);
 
-var stack = d3.stack().keys(turtles)
+var stack = d3.stack().keys(tags)
   .order(d3.stackOrderInsideOut)
   .offset(d3.stackOffsetWiggle);
 
 var line = d3.line()
   .curve(d3.curveMonotoneX);
+
+var xx = d3.scaleTime()
+      .range([0, width]);
+
+var axis = d3.axisBottom(xx);
+
+svg.append("g")
+  .attr("transform","translate(0," + height + ")")
+  .call(axis);
 
 update();
 
