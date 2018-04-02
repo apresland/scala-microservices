@@ -35,16 +35,16 @@ class TweetHashtagActor extends CassandraQuery {
       .all()
 
       Hashtags(rows.length, 4,
+        rows.map(row => row.getTupleValue("tag0").getString(0)),
+        rows.map(row => row.getTupleValue("tag1").getString(0)),
+        rows.map(row => row.getTupleValue("tag2").getString(0)),
+        rows.map(row => row.getTupleValue("tag3").getString(0)),
+        rows.map(row => row.getTupleValue("tag4").getString(0)),
         rows.map(row => row.getTupleValue("tag0").getInt(1).toDouble),
         rows.map(row => row.getTupleValue("tag1").getInt(1).toDouble),
         rows.map(row => row.getTupleValue("tag2").getInt(1).toDouble),
         rows.map(row => row.getTupleValue("tag3").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag4").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag5").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag6").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag7").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag8").getInt(1).toDouble),
-        rows.map(row => row.getTupleValue("tag9").getInt(1).toDouble)
+        rows.map(row => row.getTupleValue("tag4").getInt(1).toDouble)
       )
   }
 }
