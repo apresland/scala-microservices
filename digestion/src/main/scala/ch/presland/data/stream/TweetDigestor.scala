@@ -129,8 +129,6 @@ object TweetDigestor extends App {
     .map{case (tag,count) => (tag,count)}
     .transform(_.sortBy(p => p._2, ascending = false))
 
-  top.print()
-
   top
     .foreachRDD(rdd => saveHashtagToDB(
       rdd.take(10).aggregate(Map.empty[String,Long])(hashtagSeqOp, hashtagCombOp))

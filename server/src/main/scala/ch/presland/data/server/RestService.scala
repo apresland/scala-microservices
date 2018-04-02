@@ -23,11 +23,12 @@ import com.datastax.driver.core.{ResultSet, Session}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
-import ch.presland.data.domain.{Hashtags, Sentiments}
+import ch.presland.data.domain.{Hashtags, Sentiments, Tweets}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val sentimentsFormat = jsonFormat7(Sentiments)
+  implicit val sentimentsFormat = jsonFormat6(Sentiments)
   implicit val hashtagsFormat = jsonFormat12(Hashtags)
+  implicit val tweetsFormat = jsonFormat3(Tweets)
 }
 
 trait CorsSupport extends JsonSupport {
@@ -65,8 +66,9 @@ trait RestService extends CorsSupport {
 
     val sentimentsActor = system.actorOf(TweetSentimentActor.props(), "tweet-sentiments")
     val hashtagsActor = system.actorOf(TweetHashtagActor.props(), "tweet-hashtags")
+    val tweetsActor = system.actorOf(TweetActor.props(), "tweet-tweets")
 
-    val service =
+    val sentiments =
       get {
         path("sentiments") {
           corsHandler {
@@ -86,12 +88,25 @@ trait RestService extends CorsSupport {
         }
       }
 
-    def index = (path("") | pathPrefix("index.htm")) {
-      getFromResource("hashtags.html")
+    val tweets =
+      get {
+        path("tweets") {
+          complete(
+            ask(tweetsActor,0).mapTo[Tweets]
+          )
+        }
+      }
+
+    def streamgraph = path("streamgraph") {
+      getFromResource("streamgraph.html")
+    }
+
+    def timeline = path("timeline") {
+      getFromResource("sentiments.html")
     }
 
     get {
-      index
-    } ~ hashtags
+      streamgraph
+    } ~ timeline ~ hashtags ~ tweets ~ sentiments
   }
 }
