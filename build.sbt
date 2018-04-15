@@ -109,7 +109,7 @@ lazy val digest = (project in file("digestion")).
     libraryDependencies ++= sparkDependencies,
     libraryDependencies ++= twitterDependencies,
     libraryDependencies ++= coreNlpDependencies,
-    mainClass in (Compile,run) := Some("ch.presland.data.stream.TweetDigestor"),
+    mainClass in (Compile,run) := Some("ch.presland.data.stream.DigestionApp"),
 
     assemblyMergeStrategy in assembly := {
       case PathList("de", xs @_ * ) => MergeStrategy.first
