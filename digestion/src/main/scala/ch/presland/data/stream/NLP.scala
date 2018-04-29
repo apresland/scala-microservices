@@ -9,7 +9,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations
 import scala.collection.convert.wrapAll._
 
-object TweetAnalyser {
+object NLP {
 
   val props = new Properties()
   props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment")
