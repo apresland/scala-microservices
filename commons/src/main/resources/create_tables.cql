@@ -32,11 +32,6 @@ CREATE TABLE IF NOT EXISTS twitter.hashtags (
   tag2 tuple<text,int>,
   tag3 tuple<text,int>,
   tag4 tuple<text,int>,
-  tag5 tuple<text,int>,
-  tag6 tuple<text,int>,
-  tag7 tuple<text,int>,
-  tag8 tuple<text,int>,
-  tag9 tuple<text,int>,
   PRIMARY KEY (id, time)
 ) WITH CLUSTERING ORDER BY (time DESC);
 
