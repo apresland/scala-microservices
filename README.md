@@ -1,13 +1,13 @@
 # Reactive Tweetstream Analysis
 
-A demonstration showing how to use Spark, Akka, Cassandra and Kafka for realtime tweet sentiment analyis and for trending hashtag identification in Scala.
+A demonstration of how to use Spark, Akka, Cassandra and Kafka for realtime tweet sentiment analyis and for trending hashtag identification using Scala.
 
 TODO: Streamgraph image
 
 ## Overview
 The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to build realtime analysis pipelines in production. Since Mesos is responsible for scaling the system and not of interest here. From the others Spark, Akka and Kafka focus on reacting to the data streaming into the application with Cassandra as data store. Although SMACK is the cannonical Big-Data solution interesting alternative technologies are Elasticsearch, Logstash and for this reason alone will also be used.
 
-* Docker was used to containerise and manage the Cassandra, Kafka, Elasticsearch and Logstash services.
+* Docker is used to containerise and manage the Cassandra, Kafka, Elasticsearch and Logstash services.
 
 * Spark is an open-source cluster computing framework which supports batch-processing and stream-processing (micro-batch) with a highly performant Scala API.
 
