@@ -1,0 +1,55 @@
+version: '2'
+
+services:
+
+  cassandra:
+    build:
+      context: cassandra/
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    networks:
+      - servicebus
+
+  kafka:
+    build:
+      context: kafka/
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+    environment:
+      ADVERTISED_HOST: 192.168.1.119
+      ADVERTISED_PORT: 9092
+    networks:
+      - servicebus
+
+  elasticsearch:
+    build:
+      context: elasticsearch/
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - servicebus
+
+  logstash:
+    build:
+      context: logstash/
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - servicebus
+    depends_on:
+      - kafka
+
+networks:
+  servicebus:
+    driver: bridge
