@@ -30,3 +30,6 @@ build
 
 #general
 *.class
+
+#twitter
+**/pipeline/*.conf

@@ -10,6 +10,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+case object AskSentimentsMessage
+
 object TweetSentimentActor {
   def props():Props = Props(new TweetSentimentActor())
 }
@@ -23,11 +25,11 @@ class TweetSentimentActor extends CassandraQuery {
   val selectSentiments = session.prepare("SELECT * FROM twitter.sentiments")
 
   override def receive: Receive = {
-    case sentimentId:Int => sender() ! retrieveSentiments(sentimentId)
+    case AskSentimentsMessage => sender() ! retrieveSentiments()
     case _ => log.error("wrong request")
   }
 
-  private def retrieveSentiments(sentimentId: Int)(implicit executionContext: ExecutionContext): Sentiments = {
+  private def retrieveSentiments()(implicit executionContext: ExecutionContext): Sentiments = {
 
     log.info(s"sentiment data requested")
 

@@ -9,6 +9,8 @@ import ch.presland.data.domain.Tweets
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
+case object AskTweetsMessage
+
 object TweetActor {
   def props():Props = Props(new TweetActor())
 }
@@ -21,11 +23,11 @@ class TweetActor extends CassandraQuery {
   val selectTweets = session.prepare("SELECT * FROM twitter.tweets LIMIT 100")
 
   override def receive: Receive = {
-    case rank:Int => sender() ! retrieveTweets(rank)
+    case AskTweetsMessage => sender() ! retrieveTweets()
     case _ => log.error("wrong request")
   }
 
-  private def retrieveTweets(TweetId: Int)(implicit executionContext: ExecutionContext): Tweets = {
+  private def retrieveTweets()(implicit executionContext: ExecutionContext): Tweets = {
 
     log.info(s"tweet data requested")
 

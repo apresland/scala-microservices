@@ -10,6 +10,8 @@ import scala.concurrent.ExecutionContext
 
 import ch.presland.data.domain.Hashtags
 
+case object AskHashtagsMessage
+
 object TweetHashtagActor {
   def props():Props = Props(new TweetHashtagActor())
 }
@@ -22,11 +24,11 @@ class TweetHashtagActor extends CassandraQuery {
   val selectHashtags = session.prepare("SELECT * FROM twitter.hashtags")
 
   override def receive: Receive = {
-    case rank:Int => sender() ! retrieveHashtags(rank)
+    case AskHashtagsMessage => sender() ! retrieveHashtags()
     case _ => log.error("wrong request")
   }
 
-  private def retrieveHashtags(sentimentId: Int)(implicit executionContext: ExecutionContext): Hashtags = {
+  private def retrieveHashtags()(implicit executionContext: ExecutionContext): Hashtags = {
 
     log.info(s"hashtag data requested")
 

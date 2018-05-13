@@ -14,7 +14,6 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.headers._
 import spray.json.DefaultJsonProtocol
 
-import scala.concurrent.Await
 import akka.pattern.ask
 import akka.util.Timeout
 
@@ -65,34 +64,36 @@ trait RestService extends CorsSupport {
     implicit val timeout = Timeout(5 seconds)
 
     val sentimentsActor = system.actorOf(TweetSentimentActor.props(), "tweet-sentiments")
-    val hashtagsActor = system.actorOf(TweetHashtagActor.props(), "tweet-hashtags")
-    val tweetsActor = system.actorOf(TweetActor.props(), "tweet-tweets")
 
     val sentiments =
       get {
         path("sentiments") {
           corsHandler {
             complete(
-              ask(sentimentsActor,0).mapTo[Sentiments]
+              ask(sentimentsActor, AskSentimentsMessage).mapTo[Sentiments]
             )
           }
         }
       }
 
+    val hashtagsActor = system.actorOf(TweetHashtagActor.props(), "tweet-hashtags")
+
     val hashtags =
       get {
         path("hashtags") {
           complete(
-            ask(hashtagsActor,0).mapTo[Hashtags]
+            ask(hashtagsActor, AskHashtagsMessage).mapTo[Hashtags]
           )
         }
       }
+
+    val tweetsActor = system.actorOf(TweetActor.props(), "tweet-tweets")
 
     val tweets =
       get {
         path("tweets") {
           complete(
-            ask(tweetsActor,0).mapTo[Tweets]
+            ask(tweetsActor, AskTweetsMessage).mapTo[Tweets]
           )
         }
       }
