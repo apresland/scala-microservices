@@ -38,13 +38,11 @@ class HashtagAnalyser(ssc: StreamingContext){
 
   def analyse(tweets: DStream[Tweet]): Unit = {
 
-    val hashtags = tweets
+    tweets
       .map(t => t.content)
       .flatMap(text => text.toLowerCase().split(" ").filter(_.startsWith("#")))
       .map((_, 1))
       .reduceByKeyAndWindow(_ + _, Seconds(600))
-
-    hashtags
       .map { case (tag, count) => (tag, count) }
       .transform(_.sortBy(p => p._2, ascending = false))
       .foreachRDD(rdd => saveHashtagToCassandra(

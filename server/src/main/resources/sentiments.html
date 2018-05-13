@@ -68,7 +68,7 @@ for (var i = 0; i < 10; i++) {
   data[i]["positive"]   = sentiments.positive[i];
 }
 
-var parse = d3.timeParse("%a %b %e %H:%M:%S CET %Y");
+var parse = d3.timeParse("%a %b %e %H:%M:%S CEST %Y");
 var labels = ["hostile", "negative", "neutral", "positive"];
 var colorkey = ["DarkOrange", "Orange", "MediumAquaMarine", "SeaGreen"];
 
@@ -78,7 +78,7 @@ var series = d3.stack()
     (data);
 
 var svg = d3.select("svg"),
-    margin = {top: 20, right: 30, bottom: 30, left: 60},
+    margin = {top: 20, right: 100, bottom: 30, left: 60},
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
@@ -106,11 +106,11 @@ svg.append("g")
     .attr("y", function(d) { return y(d[1]); })
     .attr("height", function(d) { return y(d[0]) - y(d[1]); })
 
-var time = d3.axisBottom(x).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat("%H:%M:%S"));
+var time = d3.axisBottom(x).ticks(d3.timeMinute.every(5)).tickFormat(d3.timeFormat("%H:%M:%S"));
 
 svg.append("g")
     .attr("class", "time")
-    .attr("transform", "translate(0," + y(-100) + ")")
+    .attr("transform", "translate(0," + y(-160) + ")")
     .call(time);
 
 var counts = d3.axisLeft(y);
@@ -121,11 +121,12 @@ svg.append("g")
     .call(counts);
 
 // Legend.
+
 var linearSize = d3.scaleLinear().domain([74, 11]).range([12.5, 4]);
 
 svg.append('g')
   .attr('class', 'legendColor')
-  .attr('transform', 'translate(20, 0)');
+  .attr('transform', 'translate(880, 20)');
 
 var colors = d3.scaleOrdinal()
     .domain(labels)

@@ -35,12 +35,10 @@ class SentimentAnalyser(ssc: StreamingContext) {
 
   def analyse(tweets: DStream[Tweet]): Unit = {
 
-    val sentiments = tweets
+    tweets
       .map(tweet => NLP.sentiment(tweet))
       .map(sentiment => sentiment.score)
       .window(Seconds(60))
-
-    sentiments
       .foreachRDD((rdd, time) => saveSentimentToCassandra(ssc, time,
         rdd.aggregate(initialValue)(seqOp, combOp))
       )
