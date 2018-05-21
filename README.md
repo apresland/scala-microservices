@@ -11,7 +11,7 @@ The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to b
 
 * Akka allows the construction of highly distributed reactive applications using Actors and Streams. Combined with Scala as the development language many useful aspects of functional programming can leveraged.
 
-* Cassandra is a column-oriented databank that is distributed, linearly scaleable. Cassandras integrates seamlessly with Spark so that distributed operations can be executed local to the data. This data-locality means that IO operations are minimized and the CPUs only process data found locally on disk. 
+* Cassandra is a column-oriented databank that is distributed, linearly scaleable. Cassandras integrates seamlessly with Spark so that distributed operations can be executed local to the data. This data-locality means that IO operations are minimized and the CPUs only process data found locally on disk.
 
 * Kafka is a distributed horizontally scaleable and fault-tolerant Message Broker used for building realtime data pipelines and streaming applications with large data volumes. Because Kafka partitions data and saves it in an Append-Only-Log it can handle Terabytes of data without impact on performance.
 
@@ -41,7 +41,7 @@ consumer_secret => "{YOUR_TWITTER_CONSUMER_SECRET}"
 oauth_token => "{YOUR_TWITTER_ACCESS_TOKEN}"
 oauth_token_secret => "{YOUR_TWITTER_ACCESS_TOKEN_SECRET}"
 ```
-Logstash writes Tweet events into Kafka in there entirety and they contain non-relevant information that can be removed before digestion. Akka is employed to react to tweet events and to reduce the event-data for the subsequent realtime analysis. Removing this information early involves no data loss since Logstash has also pushed all Tweets into Elasticsearch and these can be used later for explorative analyis. 
+Logstash writes Tweet events into Kafka in there entirety and they contain non-relevant information that can be removed before digestion. Akka is employed to react to tweet events and to reduce the event-data for the subsequent realtime analysis. Removing this information early involves no data loss since Logstash has also pushed all Tweets into Elasticsearch and these can be used later for explorative analyis.
 
 ### Digestion
 During data digestion value is created by extracting information from the data. In this simple example we are interested in extracting sentiment from Tweets that include a keyword (e.g. "Brexit") and in identifying trending hashtags in realtime. The analysis uses Spark streams to perform the analyis and write micro-batch results into Cassandra in near-realtime. For the sentiment analysis the Stanford CoreNLP Natural-Langauge-Processing library is used.
@@ -78,3 +78,5 @@ Once the application has had enough tome to ingest and digest some tweets the fo
 http://localhost:9090/hashtags
 http://localhost:9090/sentiments
 ```
+![Alt text](docs/screenshot-hashtags.png?raw=true "Hashtags associated with keyword Brexit")
+![Alt text](docs/screenshot-sentiments.png?raw=true "Hourly sentiment scores for tweets associated with keyword Brexit")
