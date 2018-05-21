@@ -29,6 +29,7 @@ lazy val twitterDependencies = Seq(
 lazy val akkaDependencies = Seq(
   "com.typesafe.akka"        %% "akka-actor"                 % "2.4.19",
   "com.typesafe.akka"        %% "akka-slf4j"                 % "2.4.19",
+  "com.typesafe.akka"        %% "akka-stream"                % "2.4.19",
   "com.typesafe.akka"        %% "akka-stream-kafka"          % "0.16",
   "com.typesafe.akka"        %% "akka-http"                  % "10.1.0-RC1",
   "com.typesafe.akka"        %% "akka-http-spray-json"       % "10.1.0-RC1",
@@ -96,7 +97,7 @@ lazy val ingest = (project in file("ingestion")).
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= kafkaDependencies,
     libraryDependencies ++= twitterDependencies,
-    mainClass in (Compile, run) := Some("ch.presland.data.stream.TweetIngestor")
+    mainClass in (Compile, run) := Some("ch.presland.data.stream.IngestionApp")
   ).dependsOn(commons)
 
 lazy val digest = (project in file("digestion")).
@@ -156,7 +157,7 @@ lazy val server = (project in file(srvProject)).
   ).dependsOn(commons)
 
 addCommandAlias("createDigest", "digest/assembly")
-addCommandAlias("submitDigest", "digest/sparkSubmit --master local[2] --class ch.presland.data.stream.TweetDigestor -- localhost:9042")
+addCommandAlias("submitDigest", "digest/sparkSubmit --master local[2] --class ch.presland.data.stream.DigestionApp -- localhost:9042")
 
 addCommandAlias("ingest", "ingest/run")
 addCommandAlias("digest", "digest/run")

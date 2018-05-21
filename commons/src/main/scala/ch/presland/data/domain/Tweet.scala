@@ -2,11 +2,10 @@ package ch.presland.data.domain
 
 import java.util.Date
 
-case class Tweet(id: String, time: Date, user: String, content: String)
-case class Sentiments( length: Int, time: Iterable[String], hostile: Iterable[Double], negative:Iterable[Double], neutral:Iterable[Double], positive:Iterable[Double])
-
-case class Hashtags( length: Int, dimension: Int,
-                     zero: Iterable[String], one:Iterable[String], two:Iterable[String], three:Iterable[String], four:Iterable[String],
-                     five: Iterable[Double], six:Iterable[Double], seven:Iterable[Double], eight:Iterable[Double], nine:Iterable[Double])
-
-case class Tweets(length: Int, time: Iterable[String], content: Iterable[String])
+case class User(id: Int, name: String, screen_name: String, lang: String, followers: Int)
+case class Tweet(id: String, date: Date, user: String, content: String)
+case class Sentiment(id: String, date: Date, score: Int)
+case class Tweets(length: Int, date: Iterable[String], content: Iterable[String])
+case class Hashtags(hashtags: String)
+case class Statistics(id: Iterable[String], date: Iterable[String], user: Iterable[String])
+case class Sentiments( length: Int, date: Iterable[String], hostile: Iterable[Double], negative:Iterable[Double], neutral:Iterable[Double], positive:Iterable[Double])

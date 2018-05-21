@@ -38,7 +38,7 @@ class TweetSentimentActor extends CassandraQuery {
       .all()
 
       Sentiments(rows.length,
-        rows.map(row => row.getTimestamp("time").toString),
+        rows.map(row => row.getTimestamp("date").toString),
         rows.map(row => row.getInt("hostile").toDouble),
         rows.map(row => row.getInt("negative").toDouble),
         rows.map(row => row.getInt("neutral").toDouble),

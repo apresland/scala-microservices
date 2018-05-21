@@ -4,11 +4,14 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
 import ch.presland.data.domain.Tweet
+import ch.presland.data.stream.DigestionApp.stream
 import ch.presland.data.stream.SentimentAnalyser.{combOp, seqOp}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.SomeColumns
+import com.datastax.spark.connector.writer.{TTLOption, WriteConf}
+import org.apache.kafka.clients.consumer.ConsumerRecord
 
 import scala.collection.immutable.Map
 
@@ -28,12 +31,12 @@ object SentimentAnalyser {
   }
 }
 
-class SentimentAnalyser(ssc: StreamingContext) {
+class SentimentAnalyser(ssc: StreamingContext, val tweets: DStream[Tweet]){
 
-  val columnHeaders = SomeColumns("time", "hostile", "negative", "neutral", "positive")
+  val columnHeaders = SomeColumns("date", "hostile", "negative", "neutral", "positive")
   val initialValue = Map(0 -> 0L, 1 -> 0L, 2 -> 0L, 3 -> 0L)
 
-  def analyse(tweets: DStream[Tweet]): Unit = {
+  def analyse(): Unit = {
 
     tweets
       .map(tweet => NLP.sentiment(tweet))
@@ -51,6 +54,6 @@ class SentimentAnalyser(ssc: StreamingContext) {
     val row = Seq((timestamp, sentiment.get(0), sentiment.get(1), sentiment.get(2), sentiment.get(3)))
 
     ssc.sparkContext.parallelize(row)
-      .saveToCassandra("twitter","sentiments", columnHeaders)
+      .saveToCassandra("twitter","sentiments", columnHeaders, writeConf = WriteConf(ttl = TTLOption.constant(86400)))
   }
 }

@@ -26,9 +26,9 @@ trait TweetMarshaller {
         json.fields.get("created_at"),
         json.fields.get("text")) match {
         case (Some(JsString(id)),
-              Some(JsString(time)),
+              Some(JsString(date)),
               Some(JsString(text))) =>
-                Right(Tweet(id, dateFormat.parse(time), user.right.get.name, text))
+                Right(Tweet(id, dateFormat.parse(date), user.right.get.name, text))
         case _ => Left(MalformedContent("malformed tweet"))
       }
     }

@@ -11,6 +11,8 @@ import scala.util.{Failure, Success}
 
 object ServiceApp extends RestService {
 
+  val servicePort = 9090
+
   implicit val system = ActorSystem("service-api-http")
   implicit val executor = system.dispatcher
   implicit val materializer = ActorMaterializer()
@@ -19,7 +21,7 @@ object ServiceApp extends RestService {
 
   def main(args: Array[String]): Unit = {
 
-    Http().bindAndHandle(route(), "localhost", 9090)
+    Http().bindAndHandle(route(), "localhost", servicePort)
       .onComplete {
         case Success(_) => println(s"Successfully bound")
         case Failure(e) => println(s"Failed !!!!")

@@ -1,24 +1,16 @@
 package ch.presland.data.stream
 
-import java.util.Properties
-
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import com.datastax.spark.connector._
 import com.datastax.spark.connector.streaming._
-import com.datastax.spark.connector.SomeColumns
-import com.datastax.driver.core.utils._
+
 
 import scala.collection.immutable.Map
 import ch.presland.data.domain.Tweet
-
-
-import java.util.Date
-import java.time.{LocalDateTime, ZoneId}
 
 object DigestionApp extends App {
 
@@ -51,16 +43,22 @@ object DigestionApp extends App {
     .map(consumerRecord => consumerRecord.value())
     .persist()
 
-  new SentimentAnalyser(ssc)
-  .analyse(tweets)
+  new SentimentAnalyser(ssc, tweets)
+  .analyse()
 
-  new HashtagAnalyser(ssc)
-    .analyse(tweets)
+  new HashtagAnalyser(ssc, tweets)
+    .analyse()
+
+  new StatisticsAnalyser(ssc, tweets)
+    .analyse()
+
+  tweets
+    .map(tweet => println(tweet))
+    .count()
 
   tweets
     .saveToCassandra("twitter", "tweets")
 
   ssc.start()
   ssc.awaitTermination()
-
 }

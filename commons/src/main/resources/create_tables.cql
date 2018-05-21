@@ -2,38 +2,32 @@ CREATE KEYSPACE IF NOT EXISTS twitter WITH replication = {'class': 'SimpleStrate
 
 CREATE TABLE IF NOT EXISTS twitter.tweets (
   id text,
-  time timestamp,
+  date timestamp,
   user text,
   content text,
-  PRIMARY KEY (id, time)
-);
-
-CREATE TABLE IF NOT EXISTS twitter.metrics (
-  id text,
-  time timestamp,
-  sentiment int,
-  PRIMARY KEY (id, time)
-);
+  PRIMARY KEY (id, date)
+) WITH CLUSTERING ORDER BY (date DESC);
 
 CREATE TABLE IF NOT EXISTS twitter.sentiments (
-  time timestamp,
+  date timestamp,
   hostile int,
   negative int,
   neutral int,
   positive int,
-  PRIMARY KEY (hostile, time)
-) WITH CLUSTERING ORDER BY (time DESC);
+  PRIMARY KEY (hostile, date)
+) WITH CLUSTERING ORDER BY (date DESC);
+
+CREATE TABLE IF NOT EXISTS twitter.statistics (
+  id text,
+  date timestamp,
+  user text,
+  PRIMARY KEY (user, date)
+) WITH CLUSTERING ORDER BY (date DESC);
 
 CREATE TABLE IF NOT EXISTS twitter.hashtags (
-  id timeuuid,
-  time timestamp,
-  tag0 tuple<text,int>,
-  tag1 tuple<text,int>,
-  tag2 tuple<text,int>,
-  tag3 tuple<text,int>,
-  tag4 tuple<text,int>,
-  PRIMARY KEY (id, time)
-) WITH CLUSTERING ORDER BY (time DESC);
-
-
+  hashtag text,
+  date timestamp,
+  counts int,
+  PRIMARY KEY (hashtag, date)
+) WITH CLUSTERING ORDER BY (date DESC);
 

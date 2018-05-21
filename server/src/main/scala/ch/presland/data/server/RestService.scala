@@ -22,12 +22,13 @@ import com.datastax.driver.core.{ResultSet, Session}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
-import ch.presland.data.domain.{Hashtags, Sentiments, Tweets}
+import ch.presland.data.domain.{Hashtags, Sentiments, Tweets, Statistics}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val sentimentsFormat = jsonFormat6(Sentiments)
-  implicit val hashtagsFormat = jsonFormat12(Hashtags)
   implicit val tweetsFormat = jsonFormat3(Tweets)
+  implicit val statisticsFormat = jsonFormat3(Statistics)
+  implicit val wordcloudFormat = jsonFormat1(Hashtags)
 }
 
 trait CorsSupport extends JsonSupport {
@@ -64,6 +65,9 @@ trait RestService extends CorsSupport {
     implicit val timeout = Timeout(5 seconds)
 
     val sentimentsActor = system.actorOf(TweetSentimentActor.props(), "tweet-sentiments")
+    val hashtagsActor = system.actorOf(TweetHashtagActor.props(), "tweet-hashtags")
+    val statisticsActor = system.actorOf(TweetStatisticsActor.props(), "tweet-statistics")
+    val tweetsActor = system.actorOf(TweetActor.props(), "tweet-tweets")
 
     val sentiments =
       get {
@@ -76,8 +80,6 @@ trait RestService extends CorsSupport {
         }
       }
 
-    val hashtagsActor = system.actorOf(TweetHashtagActor.props(), "tweet-hashtags")
-
     val hashtags =
       get {
         path("hashtags") {
@@ -87,7 +89,14 @@ trait RestService extends CorsSupport {
         }
       }
 
-    val tweetsActor = system.actorOf(TweetActor.props(), "tweet-tweets")
+    val statistics =
+      get {
+        path("statistics") {
+          complete(
+            ask(statisticsActor, AskStatisticsMessage).mapTo[Statistics]
+          )
+        }
+      }
 
     val tweets =
       get {
@@ -98,16 +107,20 @@ trait RestService extends CorsSupport {
         }
       }
 
-    def streamgraph = path("streamgraph") {
-      getFromResource("streamgraph.html")
-    }
-
     def timeline = path("timeline") {
       getFromResource("sentiments.html")
     }
 
+    def tagcloud = path("tagcloud") {
+      getFromResource("wordcloud.html")
+    }
+
+    def histogram = path("histogram") {
+      getFromResource("histogram.html")
+    }
+
     get {
-      streamgraph
-    } ~ timeline ~ hashtags ~ tweets ~ sentiments
+      histogram
+    } ~ timeline ~ tagcloud ~ hashtags ~ tweets ~ sentiments ~ statistics
   }
 }

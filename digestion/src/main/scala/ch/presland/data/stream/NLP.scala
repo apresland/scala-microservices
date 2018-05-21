@@ -29,6 +29,6 @@ object NLP {
       .maxBy{case (sentence,_) => sentence.toString.length}
       ._2
 
-    Sentiment(tweet.id, tweet.time, sentiment)
+    Sentiment(tweet.id, tweet.date, sentiment)
   }
 }

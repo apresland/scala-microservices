@@ -2,10 +2,6 @@
 <meta charset="utf-8">
 <style>
 
-  body {
-    background-color: #404040;
-  }
-
   text {
     font: 14px sans-serif;
   }
@@ -17,36 +13,6 @@
 
   .hidden {
     display: none;
-  }
-
-  .time path {
-    stroke: #cccccc
-  }
-
-  .time line {
-    stroke: #cccccc;
-    shape-rendering: crispEdges;
-  }
-
-  .time text {
-    stroke: #cccccc
-  }
-
-  .counts path {
-    stroke: #cccccc
-  }
-
-  .counts line {
-    stroke: #cccccc;
-    shape-rendering: crispEdges;
-  }
-
-  .counts text {
-    stroke: #cccccc
-  }
-
-  .legendColor text {
-    stroke: #cccccc
   }
 
 </style>
@@ -61,7 +27,7 @@ var data = [];
 
 for (var i = 0; i < 10; i++) {
   data[i] = {};
-  data[i]["time"]       = sentiments.time[i];
+  data[i]["date"]       = sentiments.date[i];
   data[i]["hostile"]    = -sentiments.hostile[i];
   data[i]["negative"]   = -sentiments.negative[i];
   data[i]["neutral"]    = sentiments.neutral[i];
@@ -70,7 +36,7 @@ for (var i = 0; i < 10; i++) {
 
 var parse = d3.timeParse("%a %b %e %H:%M:%S CEST %Y");
 var labels = ["hostile", "negative", "neutral", "positive"];
-var colorkey = ["DarkOrange", "Orange", "MediumAquaMarine", "SeaGreen"];
+var colorkey = ["MediumOrchid", "Orchid", "LightSeaGreen", "SeaGreen"];
 
 var series = d3.stack()
     .keys(labels)
@@ -83,7 +49,7 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 
 var x = d3.scaleBand()
-    .domain(data.map(function(d) { return parse(d.time); }))
+    .domain(data.map(function(d) { return parse(d.date); }))
     .rangeRound([margin.left, width - margin.right])
     .padding(0.1);
 
@@ -102,15 +68,15 @@ svg.append("g")
   .data(function(d) { return d; })
   .enter().append("rect")
     .attr("width", x.bandwidth)
-    .attr("x", function(d) { return x(parse(d.data.time)); })
+    .attr("x", function(d) { return x(parse(d.data.date)); })
     .attr("y", function(d) { return y(d[1]); })
     .attr("height", function(d) { return y(d[0]) - y(d[1]); })
 
-var time = d3.axisBottom(x).ticks(d3.timeMinute.every(5)).tickFormat(d3.timeFormat("%H:%M:%S"));
+var time = d3.axisBottom(x).ticks(d3.timeHour.every(1)).tickFormat(d3.timeFormat("%H:%M"));
 
 svg.append("g")
     .attr("class", "time")
-    .attr("transform", "translate(0," + y(-160) + ")")
+    .attr("transform", "translate(0,470)")
     .call(time);
 
 var counts = d3.axisLeft(y);
@@ -119,8 +85,6 @@ svg.append("g")
     .attr("class", "counts")
     .attr("transform", "translate(" + margin.left + ",0)")
     .call(counts);
-
-// Legend.
 
 var linearSize = d3.scaleLinear().domain([74, 11]).range([12.5, 4]);
 
