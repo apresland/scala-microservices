@@ -2,6 +2,8 @@
 
 A demonstration of how to use Spark, Akka, Cassandra and Kafka for realtime analysis of tweet sentiment and trending hashtags using Scala.
 
+![Alt text](docs/screenshot-hashtags.png?raw=true "Hashtags associated with keyword Brexit")
+
 ## Overview
 The SMACK stack (Spark, Mesos, Akka, Cassandra and Kafka) are commonly used to build realtime pipelines. Mesos is responsible for scaling the system and not of interest here. From the others Spark, Akka and Kafka focus on reacting to the data streaming into the application with Cassandra as data store. Although SMACK is the cannonical Big-Data solution interesting alternative technologies are Elasticsearch, Logstash and for this reason alone will also be used.
 
@@ -78,5 +80,4 @@ Once the application has had enough tome to ingest and digest some tweets the fo
 http://localhost:9090/hashtags
 http://localhost:9090/sentiments
 ```
-![Alt text](docs/screenshot-hashtags.png?raw=true "Hashtags associated with keyword Brexit")
 ![Alt text](docs/screenshot-sentiments.png?raw=true "Hourly sentiment scores for tweets associated with keyword Brexit")
