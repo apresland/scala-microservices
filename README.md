@@ -80,4 +80,3 @@ Once the application has had enough tome to ingest and digest some tweets the fo
 http://localhost:9090/hashtags
 http://localhost:9090/sentiments
 ```
-![Alt text](docs/screenshot-sentiments.png?raw=true "Hourly sentiment scores for tweets associated with keyword Brexit")
